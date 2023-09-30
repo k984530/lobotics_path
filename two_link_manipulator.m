@@ -3,8 +3,8 @@ L1 = 1; % 첫 번째 링크 길이 (단위: 미터)
 L2 = 1; % 두 번째 링크 길이 (단위: 미터)
 
 % 시작 위치와 목표 위치 설정 (x, y 좌표)
-start_x = 0;
-start_y = 0;
+start_x = 0.2;
+start_y = 0.2;
 target_x = 1;
 target_y = 1;
 
@@ -12,7 +12,7 @@ target_y = 1;
 step_size = 0.01;
 
 % 이동 속도 설정 (단위: 라디안)
-angular_velocity = 0.1; % 라디안/초
+angular_velocity = 0.2; % 라디안/초
 
 % 시작 위치에서 목표 위치까지 선형 보간
 distance = norm([target_x - start_x, target_y - start_y]);
