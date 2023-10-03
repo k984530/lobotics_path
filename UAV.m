@@ -2,9 +2,6 @@
 x = 0;
 y = 0;
 z = 10;
-roll = 0;
-pitch = 0;
-yaw = 0;
 
 % 그래픽 핸들을 초기화합니다.
 h = [];
@@ -48,7 +45,7 @@ for t = 0:0.1:10 % 10초 동안 움직입니다.
     % UAV를 그립니다.
     h = fill3(transformed_triangle(1, :), transformed_triangle(2, :), transformed_triangle(3, :), 'r');
     
-    pause(0.05);
+    pause(0.1);
     % 그림을 갱신합니다.
     drawnow;
 end
