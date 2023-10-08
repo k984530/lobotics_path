@@ -1,51 +1,55 @@
-% 환경 설정
-close all; clear; clc;
+% 초기 설정
+start_point = [5, 50];
+goal_point = [95, 50];
+map_size = [100, 100];
 
-% 화면 크기 설정
-figure;
-axis([0 100 0 100]); % x와 y 축 범위 설정
-hold on;
+% 세 개의 장애물 설정
+obstacle_centers = [50, 40; 70, 50; 50, 60];
+obstacle_radius = 12;
 
-% 초기 위치 및 목표 위치 설정
-start_pos = [10 50];
-end_pos = [90 50];
+% Potential field 생성
+[X, Y] = meshgrid(1:map_size(1), 1:map_size(2));
+attractive_potential = sqrt((X-goal_point(1)).^2 + (Y-goal_point(2)).^2);
+repulsive_potential = zeros(map_size);
 
-% 장애물 위치 설정
-obstacle_pos = [40 58; 40 42; 50 50];
-obstacle_radius = 3;
-
-% 원 그리기
-plot(start_pos(1), start_pos(2), 'ro', 'MarkerSize', 5, 'LineWidth', 2);
-plot(end_pos(1), end_pos(2), 'bo', 'MarkerSize', 5, 'LineWidth', 2);
-
-% 장애물 그리기
-for i=1:3
-    rectangle('Position', [obstacle_pos(i,1)-obstacle_radius, obstacle_pos(i,2)-obstacle_radius, obstacle_radius*2, obstacle_radius*2], ...
-              'Curvature', [1 1], 'FaceColor', 'g');
+for i = 1:size(obstacle_centers, 1)
+    repulsive_field = (obstacle_radius^3) ./ ((X-obstacle_centers(i, 1)).^2 + (Y-obstacle_centers(i, 2)).^2) - obstacle_radius^2;
+    repulsive_field(repulsive_field > 1) = 0;
+    repulsive_field(repulsive_field < -obstacle_radius^2) = -obstacle_radius^2; % 장애물 내부를 고려
+    repulsive_potential = repulsive_potential + repulsive_field;
 end
 
-% 플레이어 움직임 설정
-player_pos = start_pos;
-player_radius = 1;
+potential_field = attractive_potential - repulsive_potential;
 
-player_h = plot(player_pos(1), player_pos(2), 'ko', 'MarkerSize', player_radius*10, 'LineWidth', 2);
+% Potential field 표시
+figure;
+imagesc(potential_field);
+colormap('jet');
+hold on;
+h_start = plot(start_point(1), start_point(2), 'ro', 'MarkerSize', 10, 'LineWidth', 2);
+h_goal = plot(goal_point(1), goal_point(2), 'go', 'MarkerSize', 10, 'LineWidth', 2);
+h_path = plot(start_point(1), start_point(2), 'b.-'); % 초기 경로
+axis equal;
 
-% 플레이어 움직이기
-step_size = 0.5;
-while sqrt(sum((player_pos-end_pos).^2)) > step_size
-    % 장애물에 닿으면 멈추기
-    for i=1:3
-        if sqrt(sum((player_pos-obstacle_pos(i,:)).^2)) <= (player_radius+obstacle_radius)
-            break;
-        end
+% 로봇의 움직임 시뮬레이션
+current_point = start_point;
+path = [current_point];
+while norm(current_point - goal_point) > 1
+    [dx, dy] = gradient(-potential_field); % 경사 상승 방향으로 움직임
+    current_dir = [dx(current_point(2), current_point(1)), dy(current_point(2), current_point(1))];
+    
+    % 새로운 위치 계산 및 반올림
+    current_point = round(current_point + current_dir);
+    
+    % 배열 범위를 벗어나는지 확인
+    if current_point(1) < 1 || current_point(1) > map_size(1) || current_point(2) < 1 || current_point(2) > map_size(2)
+        break;
     end
     
-    % 다음 위치 계산
-    dir = (end_pos - player_pos) / sqrt(sum((end_pos - player_pos).^2));
-    player_pos = player_pos + dir * step_size;
-
-    % 그래픽 업데이트
-    set(player_h, 'XData', player_pos(1), 'YData', player_pos(2));
-    drawnow;
-    pause(0.1)
+    % 경로 업데이트 및 시각화
+    path = [path; current_point];
+    set(h_path, 'XData', path(:,1), 'YData', path(:,2));
+    
+    % 약간의 지연을 줘서 실시간으로 움직임 관찰
+    pause(0.05);
 end
